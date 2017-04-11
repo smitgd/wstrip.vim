@@ -28,12 +28,15 @@ endfunction
 
 function! s:get_diff_lines() abort
   if &readonly || !&modifiable || !empty(&buftype)
-    return []
+    echoe "File not writeable"
+    return ["err"]
   endif
 
   let buf_name = bufname('%')
   if empty(buf_name) || !filereadable(buf_name)
-    return [[1, line('$')]]
+    "return [[1, line('$')]]
+    echoe "Buffer error or file unreadable"
+    return ["err"]
   endif
 
   let repo = s:git_repo()
@@ -46,16 +49,17 @@ function! s:get_diff_lines() abort
     if fname[:len(cwd)-1] == cwd
       let fname = fname[len(cwd):]
     else
-      return []
+      "return []
     endif
   endif
 
   if !empty(repo) && s:is_tracked(fullpath)
-    let cmd = 'git diff -U0 --no-ext-diff HEAD:"%s" "%s"'
+    let cmd = 'git diff -U0 --exit-code --no-ext-diff HEAD:"%s" "%s"'
   elseif executable('diff')
     let cmd = 'diff -U0 "%s" "%s"'
   else
-    return []
+    echoe "No diff command available"
+    return ["err"]
   endif
 
   " This check is done before the file is written, so the buffer contents
@@ -73,8 +77,12 @@ function! s:get_diff_lines() abort
   let difflines = split(system(printf(cmd, fname, tmpfile)), "\n")
   call delete(tmpfile)
 
-  if v:shell_error
-    return [[1, line('$')]]
+  if v:shell_error == 0
+    " No change
+    return []
+  elseif v:shell_error != 1
+    echoe "Diff status bad"
+    return ["err"]
   endif
 
   let groups = []
@@ -105,19 +113,70 @@ function! s:get_diff_lines() abort
 endfunction
 
 
-function! wstrip#clean() abort
+function! wstrip#clean(...) abort
   if !s:cleanable()
+    echoe "File not cleanable"
     return
   endif
 
   let wspattern = s:pattern
+  if !exists('b:wstrip_trailing_max')
+    let b:wstrip_trailing_max = 0
+  endif
+  let wspattern = '\s\{'.b:wstrip_trailing_max.'}\zs'.wspattern
 
-  if exists('b:wstrip_trailing_max')
-    let wspattern = '\s\{'.b:wstrip_trailing_max.'}\zs'.wspattern
+  if exists("a:1")
+    if a:1 == "all"
+      " remove all trailing whitespace in buffer
+      let l:groups = [[1, line('$')]]
+    elseif a:1 == "hide"
+      " remove trailing whitespace highlighting
+      syntax off
+      return
+    elseif a:1 == "show"
+      " show or restore hidden trailing whitespace highlighting
+      syntax on
+      execute 'syntax match WStripTrailing '.'/'.wspattern.'/'.' containedin=ALL'
+      return
+    else
+      echoe "Usage: WStrip [all | hide | show]"
+      echom "WStrip with no argument removes trailing whitespace in buffer only on changed/new lines"
+      echom "all : Remove all trailing whitespace in buffer"
+      echom "hide: Hides trailing whitespace highlighting"
+      echom "show: Shows trailing whitespace highlighting"
+      return
+    endif
+  else
+    let l:groups = s:get_diff_lines()
+    if type(l:groups) != type([])
+      echoe "s:get_diff_lines() return not a list"
+      return
+    endif
+    if l:groups == []
+      " buffer not changed, don't remove any trailing whitespace
+      return
+    elseif l:groups == ["err"]
+      return
+    else
+      "Should be set(s) of line pairs that are non-zero numbers
+      "e.g., minimal list: [[1,5]] ==> lines 1 to 5 modified
+      "e.g., typical list: [[1,5],[10,10],[20,21]]
+      "This is a basic check for a valid looking list (not exhaustive).
+      let l:inner_list = get(l:groups, 0)
+      if type(l:inner_list) != type([])
+        echoe "s:get_diff_lines() return is not a nested list"
+        return
+      endif
+      let l:first_line = get(l:inner_list, 0)
+      if type(l:first_line) != type(0) || l:first_line == 0
+        echoe "s:get_diff_lines() return is not list(s) of line pairs"
+        return
+      endif
+    endif
   endif
 
   let view = winsaveview()
-  for group in s:get_diff_lines()
+  for group in l:groups
     execute join(group, ',').'s/'.wspattern.'//e'
   endfor
   call histdel('search', -1)

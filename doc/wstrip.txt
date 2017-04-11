@@ -11,18 +11,38 @@
 INTRO                                                            *wstrip-intro*
 
 This plugin uses `git-diff` to strip whitespace from lines that you changed
-while editing.  This allows you to keep newly added lines clean without
-affecting the history of existing lines.
+or added while editing.  This allows you to keep newly added or changed lines
+free of trailing whitespace without affecting the history of existing lines.
 
 If the file is not in a `git` repository, `diff` is used to make a simple
-comparison against the existing file on disk.
+comparison against the existing file on disk. The same commands and
+configuration settings apply.
 
 
 ==============================================================================
-COMMAND                                                        *wstrip-command*
+COMMAND                                                       *wstrip-command*
 
-								     *:WStrip*
-:WStrip				Strips trailing whitespace on changed lines.
+								    *:WStrip*
+:WStrip				Strip trailing whitespace only on new and
+				changed lines in the buffer. `:w` must still
+			        be done before the file is updated.
+				This is the same action that occurs before a
+				`:w` (save) when wstrip_auto is set to `1`.
+
+								*:WStrip_all*
+:WStrip all			Strip trailing whitespace on ALL lines in
+				buffer. `:w` (save) must still be done before
+			       	the file is updated. This never occurs
+				automatically.
+
+								  *:WStrip_show*
+:WStrip show			Show highlighting for all trailing whitespace.
+				Even if configuration value g:wstrip_highlight
+				is 0, this shows highlighting.
+
+								  *:WStrip_hide*
+:WStrip hide			Hide highlighting for all trailing whitespace
+				even if g:wstrip_highlight is non-zero.
 
 
 ==============================================================================
@@ -30,20 +50,25 @@ CONFIG                                                          *wstrip-config*
 
 							       *g:wstrip_auto*
 g:wstrip_auto			Enables automatic cleaning of trailing
-				whitespace when a buffer is saved.
+				whitespace when a buffer is saved. Same action
+				as `WStrip` command.
 
 				Note: `b:wstrip_auto` can be used to enable
 				this option per-buffer.
 
-				Default: `0`
+				Default: `0` (no automatic whitespace removal)
 
 							  *g:wstrip_highlight*
 g:wstrip_highlight		Enables highlighting of trailing whitespace.
 				The `WStripTrailing` syntax group is used for
-				highlighting.
+				highlighting. When set non-zero, highlighting
+				immediately occurs when file is first edited.
+				Setting this to zero while editing does not
+				remove highlighting. Use command `Wstrip hide`
+				to do that.
 
-				Note: If it appears Vim can display underlined
-				text, the trailing whitespace will be
+				Note: If Vim determines it can display under-
+				lined text, the trailing whitespace will be
 				highlighted with a red underline.  Otherwise,
 				the trailing whitespace will be highlighted
 				with a red background.
@@ -51,10 +76,10 @@ g:wstrip_highlight		Enables highlighting of trailing whitespace.
 				Note: `b:wstrip_highlight` can be used to
 				enable this option per-buffer.
 
-				Default: `1`
+				Default: `1` (highlighting enabled)
 
-						       *g:wstrip_trailing_max*
-g:wstrip_trailing_max		The maximum amount of trailing whitespace that
+						       *b:wstrip_trailing_max*
+b:wstrip_trailing_max		The maximum amount of trailing whitespace that
 				can exist before the remaining whitespace is
 				stripped.
 
@@ -62,9 +87,25 @@ g:wstrip_trailing_max		The maximum amount of trailing whitespace that
 				excess whitespace is highlighted.
 
 				Note: This is set to `2` for the `markdown`
-				|filetype|.
+				|filetype| if b:wstrip_trailing_max is not
+				set. For other |filetype|s it defaults to 0.
 
-				Default: `0`
+				Note: If `2` spaces remain after cleaning even
+				though b:wstrip_trailing_max is set to
+				something else, it is because wstrip file
+				ftplugin/markdown.vim is in the wrong place.
+				It must not be under toplevel plugin directory
+				but under toplevel ftplugin directory, e.g.,
+				`mkdir -p ~/.vim/ftplugin`
+				`cd ~/.vim`
+				`mv plugin/wstrip.vim/ftplugin/markdown.vim \`
+				`ftplugin/`
+				Alternatively, if special settings for
+				markdown file editing are not needed, just
+				remove wstrip file `ftplugin/markdown.vim`.
+
+				Default: `0` (leave no trailing whitespace
+				on stripped lines)
 
 
 ==============================================================================
