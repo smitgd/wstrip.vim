@@ -15,8 +15,37 @@ or added while editing.  This allows you to keep newly added or changed lines
 free of trailing whitespace without affecting the history of existing lines.
 
 If the file is not in a `git` repository, `diff` is used to make a simple
-comparison against the existing file on disk. The same commands and
-configuration settings apply.
+comparison against the existing file on disk. The same commands, configuration
+settings and functionality apply.
+
+
+==============================================================================
+INSTALLATION						      *wstrip-install*
+
+Place the wstrip.vim/ plugin project directory anywhere in your filesystem. A 
+reasonable location would be `~/.vim/wstrip.vim/`. To function correcty the
+plugin project must be on the vim `runtimepath`. The current `runtimepath` can
+be examined with `:set rtp`. Put a line such as this containg the plugin path
+in your `vimrc` (not `gvimrc`) to add the plugin path at the front of
+`runtimepath`:
+
+`execute "set rtp=~/.vim/wstrip.vim".&rtp`
+
+and restart vim. You can run `:scriptnames` to verify wstrip.vim plugin is
+loaded.
+
+To enable `:help wstrip` it is necessary to run a one-time build of help 
+tags for the plugin by doing this command (again, with your chosen path to
+wstrip.vim).
+
+`:helptags ~/.vim/wstrip.vim/doc`
+
+Another way to install the plugin is to use a plugin manager such as
+"pathogen" (which is also a vim plugin). It automatically sets the
+`runtimepath` and provides a simplied `:Helptags` command while making it
+easier to install and manage several different plugins, typically under
+~/.vim/bundle/. Pathogen and other plugin managers are available on github.
+If a plugin manager is used, follow the installation instructions provided.
 
 
 ==============================================================================
@@ -79,30 +108,23 @@ g:wstrip_highlight		Enables highlighting of trailing whitespace.
 				Default: `1` (highlighting enabled)
 
 						       *b:wstrip_trailing_max*
-b:wstrip_trailing_max		The maximum amount of trailing whitespace that
-				can exist before the remaining whitespace is
-				stripped.
-
+b:wstrip_trailing_max		The maximum amount of trailing whitespace
+				that is left after any additional  
+				whitespace is stripped. E.g., If have 6 
+				trailing whitespaces; if b:wstrip_trailing_max
+				is 4, after stripping, 4 whitespaces remain.
+				However, if there are initially 4 or less
+				trailing whitespaces, none will be stripped.
+				
 				Note: If highlighting is enabled, only the
-				excess whitespace is highlighted.
+				whitespace that would be stripped is highlighted.
 
-				Note: This is set to `2` for the `markdown`
+				Note: This defaults to `2` for the `markdown`
 				|filetype| if b:wstrip_trailing_max is not
 				set. For other |filetype|s it defaults to 0.
-
-				Note: If `2` spaces remain after cleaning even
-				though b:wstrip_trailing_max is set to
-				something else, it is because wstrip file
-				ftplugin/markdown.vim is in the wrong place.
-				It must not be under toplevel plugin directory
-				but under toplevel ftplugin directory, e.g.,
-				`mkdir -p ~/.vim/ftplugin`
-				`cd ~/.vim`
-				`mv plugin/wstrip.vim/ftplugin/markdown.vim \`
-				`ftplugin/`
-				Alternatively, if special settings for
-				markdown file editing are not needed, just
-				remove wstrip file `ftplugin/markdown.vim`.
+				If the special settings for markdown file 
+				editing is not needed, just remove wstrip file
+			        `/wstrip.vim/ftplugin/markdown.vim`.
 
 				Default: `0` (leave no trailing whitespace
 				on stripped lines)

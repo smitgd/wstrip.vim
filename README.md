@@ -1,23 +1,24 @@
 # wstrip.vim
 
-Strip trailing whitespace only on changed lines.  Inspired by question on
-StackExchange's [Vi and Vim][1] website.
+Strip trailing whitespace only on changed or added lines.  Inspired by question
+on StackExchange's [Vi and Vim][1] website.
 
 
 ## Summary
 
-This plugin uses `git-diff` to trailing strip whitespace from lines that
-you changed while editing.  This allows you to keep newly added lines clean
-without affecting the history of existing lines.
+This plugin uses `git-diff` to strip whitespace from lines that you changed
+or added while editing.  This allows you to keep newly added or changed lines
+free of trailing whitespace without affecting the history of existing lines.
 
 If the file is not in a `git` repository, `diff` is used to make a simple
-comparison against the existing file on disk.
+comparison against the existing file on disk. The same commands, configuration
+settings and functionality apply.
 
 
 ## Usage
 
 Trailing whitespace on only new or modified lines can be automatically stripped
-when writing the buffer by setting `g:wstrip_auto` or `b:wstrip_auto` to `1`.  
+when writing the buffer by setting `g:wstrip_auto` to 1 or `b:wstrip_auto` to `1`.  
 This is disabled by default.
 
 ```vim
