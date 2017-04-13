@@ -32,7 +32,7 @@ autocmd FileType *.css,*.py let b:wstrip_auto = 1
 If you don't want automatic cleaning on write, the `:WStrip` command can 
 still be used at any time to manually clean trailing whitespace on new or
 changed lines of the current buffer. In addition the `:WStrip all` command
-can be used to remove trialing whitespace on all lines of the buffer.
+can be used to remove trailing whitespace on all lines of the buffer.
 
 Trailing whitespace will be highlighted using the `WStripTrailing` syntax
 group.  If it appears that Vim is capable of underlining text, trailing
@@ -59,6 +59,8 @@ to `0`.
 " Allow a maximum of 3 whitespaces characters to remain for all filetypes 
 let b:wstrip_trailing_max = 3
 ```
+For complete details on wstrip.vim plugin installation, commands and configuration
+see `doc/wstrip.txt`.
 
 
 ## License
